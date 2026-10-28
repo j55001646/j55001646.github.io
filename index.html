@@ -29,25 +29,49 @@ button#reset{background:var(--accent);border-color:var(--accent);font-weight:600
 .t{font-size:.7rem;padding:2px 8px;border-radius:99px;color:#fff;font-weight:600;text-shadow:0 1px 1px rgba(0,0,0,.4)}
 .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:16px}
+#party{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#party input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid #3a4154;background:var(--card);color:var(--text);width:90px;text-transform:uppercase;letter-spacing:2px}
+#pcode{color:var(--muted);font-size:.9rem}
+#pcode b{color:var(--text);letter-spacing:3px;font-size:1.05rem}
+#players,#banner{flex-basis:100%;display:none;gap:10px;flex-wrap:wrap;align-items:center}
+.pl{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 6px;border-radius:12px;border:2px solid #2c3140;min-width:140px;text-align:left}
+.pl.wait{opacity:.7;border-style:dashed}
+#pcode button{padding:3px 8px;font-size:.8rem}
+:focus-visible{outline:3px solid #4a8cff;outline-offset:2px}
+.pl.me{border-color:#4a8cff;cursor:default}
+.pl img,.pl .q{width:44px;height:44px;object-fit:contain;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--muted)}
+.pl small{display:block;color:var(--muted)}
+#banner{background:#243050;border:1px solid #4a8cff;border-radius:10px;padding:8px 12px}
+body.picking .tile{outline:2px dashed #4a8cff;outline-offset:-4px}
+.go{background:#2ea043!important;border-color:#2ea043!important;color:#fff;font-weight:700}
+button:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
 <header>
   <h1>Kanto Pokédex</h1>
-  <label>Element:
-    <select id="filter"><option value="">All</option></select>
-  </label>
-  <button id="reset">Reset</button>
+  <label>Element: <select id="filter" aria-label="Filter by element"><option value="">All types</option></select></label>
+  <select id="cnt" aria-label="Number of types"><option value="">All Pokémon</option><option value="1">Single type</option><option value="2">Dual type</option></select>
+  <input id="q" type="search" placeholder="Search name or #" aria-label="Search">
+  <button id="clearf">Clear filters</button>
+  <button id="reset">Reset crosses</button>
   <span id="count"></span>
+  <span id="party">
+    <button id="create">Create party</button>
+    <input id="uname" placeholder="Your name" maxlength="20" style="width:120px;text-transform:none;letter-spacing:0"><input id="code" placeholder="CODE" maxlength="5"><button id="join">Join</button>
+    <span id="pcode"></span><button id="leave" style="display:none">Leave</button>
+  </span>
+  <div id="players"></div>
+  <div id="banner"></div>
 </header>
 <main id="grid"></main>
-<footer>🌿 = can be caught in the wild in Kanto (Red/Blue/FireRed/LeafGreen). Gifts, fossils, trades, prizes and evolution-only Pokémon are not marked.</footer>
+<footer>🌿 = can be caught in the wild in Kanto (Red/Blue/FireRed/LeafGreen). Gifts, fossils, trades, prizes and evolution-only Pokémon are not marked.<br>Party: one person creates a party and shares the 5-letter code. Crossing out tiles stays private to you. It is peer-to-peer, so if the host leaves the party ends.</footer>
 
 <script>
-const TYPES = {Normal:"#a8a77a",Fire:"#ee8130",Water:"#6390f0",Electric:"#d4a90a",Grass:"#5aa83c",Ice:"#4fb8b8",Fighting:"#c22e28",Poison:"#a33ea1",Ground:"#b8975a",Flying:"#8f7bd6",Psychic:"#f95587",Bug:"#a6b91a",Rock:"#b6a136",Ghost:"#735797",Dragon:"#6f35fc",Steel:"#8a8aa8",Fairy:"#d685ad"};
-const A = {No:"Normal",Fi:"Fire",Wa:"Water",El:"Electric",Gr:"Grass",Ic:"Ice",Fg:"Fighting",Po:"Poison",Gd:"Ground",Fl:"Flying",Ps:"Psychic",Bu:"Bug",Ro:"Rock",Gh:"Ghost",Dr:"Dragon",St:"Steel",Fa:"Fairy"};
+const TYPES = {Normal:"#a8a77a",Fire:"#ee8130",Water:"#6390f0",Electric:"#d4a90a",Grass:"#5aa83c",Ice:"#4fb8b8",Fighting:"#c22e28",Poison:"#a33ea1",Ground:"#b8975a",Flying:"#8f7bd6",Psychic:"#f95587",Bug:"#a6b91a",Rock:"#b6a136",Ghost:"#735797",Dragon:"#6f35fc"};
+const A = {No:"Normal",Fi:"Fire",Wa:"Water",El:"Electric",Gr:"Grass",Ic:"Ice",Fg:"Fighting",Po:"Poison",Gd:"Ground",Fl:"Flying",Ps:"Psychic",Bu:"Bug",Ro:"Rock",Gh:"Ghost",Dr:"Dragon"};
 // Name:Type1,Type2 — in Pokédex order (1–151)
-const RAW = `Bulbasaur:Gr,Po|Ivysaur:Gr,Po|Venusaur:Gr,Po|Charmander:Fi|Charmeleon:Fi|Charizard:Fi,Fl|Squirtle:Wa|Wartortle:Wa|Blastoise:Wa|Caterpie:Bu|Metapod:Bu|Butterfree:Bu,Fl|Weedle:Bu,Po|Kakuna:Bu,Po|Beedrill:Bu,Po|Pidgey:No,Fl|Pidgeotto:No,Fl|Pidgeot:No,Fl|Rattata:No|Raticate:No|Spearow:No,Fl|Fearow:No,Fl|Ekans:Po|Arbok:Po|Pikachu:El|Raichu:El|Sandshrew:Gd|Sandslash:Gd|Nidoran♀:Po|Nidorina:Po|Nidoqueen:Po,Gd|Nidoran♂:Po|Nidorino:Po|Nidoking:Po,Gd|Clefairy:Fa|Clefable:Fa|Vulpix:Fi|Ninetales:Fi|Jigglypuff:No,Fa|Wigglytuff:No,Fa|Zubat:Po,Fl|Golbat:Po,Fl|Oddish:Gr,Po|Gloom:Gr,Po|Vileplume:Gr,Po|Paras:Bu,Gr|Parasect:Bu,Gr|Venonat:Bu,Po|Venomoth:Bu,Po|Diglett:Gd|Dugtrio:Gd|Meowth:No|Persian:No|Psyduck:Wa|Golduck:Wa|Mankey:Fg|Primeape:Fg|Growlithe:Fi|Arcanine:Fi|Poliwag:Wa|Poliwhirl:Wa|Poliwrath:Wa,Fg|Abra:Ps|Kadabra:Ps|Alakazam:Ps|Machop:Fg|Machoke:Fg|Machamp:Fg|Bellsprout:Gr,Po|Weepinbell:Gr,Po|Victreebel:Gr,Po|Tentacool:Wa,Po|Tentacruel:Wa,Po|Geodude:Ro,Gd|Graveler:Ro,Gd|Golem:Ro,Gd|Ponyta:Fi|Rapidash:Fi|Slowpoke:Wa,Ps|Slowbro:Wa,Ps|Magnemite:El,St|Magneton:El,St|Farfetch'd:No,Fl|Doduo:No,Fl|Dodrio:No,Fl|Seel:Wa|Dewgong:Wa,Ic|Grimer:Po|Muk:Po|Shellder:Wa|Cloyster:Wa,Ic|Gastly:Gh,Po|Haunter:Gh,Po|Gengar:Gh,Po|Onix:Ro,Gd|Drowzee:Ps|Hypno:Ps|Krabby:Wa|Kingler:Wa|Voltorb:El|Electrode:El|Exeggcute:Gr,Ps|Exeggutor:Gr,Ps|Cubone:Gd|Marowak:Gd|Hitmonlee:Fg|Hitmonchan:Fg|Lickitung:No|Koffing:Po|Weezing:Po|Rhyhorn:Gd,Ro|Rhydon:Gd,Ro|Chansey:No|Tangela:Gr|Kangaskhan:No|Horsea:Wa|Seadra:Wa|Goldeen:Wa|Seaking:Wa|Staryu:Wa|Starmie:Wa,Ps|Mr. Mime:Ps,Fa|Scyther:Bu,Fl|Jynx:Ic,Ps|Electabuzz:El|Magmar:Fi|Pinsir:Bu|Tauros:No|Magikarp:Wa|Gyarados:Wa,Fl|Lapras:Wa,Ic|Ditto:No|Eevee:No|Vaporeon:Wa|Jolteon:El|Flareon:Fi|Porygon:No|Omanyte:Ro,Wa|Omastar:Ro,Wa|Kabuto:Ro,Wa|Kabutops:Ro,Wa|Aerodactyl:Ro,Fl|Snorlax:No|Articuno:Ic,Fl|Zapdos:El,Fl|Moltres:Fi,Fl|Dratini:Dr|Dragonair:Dr|Dragonite:Dr,Fl|Mewtwo:Ps|Mew:Ps`;
+const RAW = `Bulbasaur:Gr,Po|Ivysaur:Gr,Po|Venusaur:Gr,Po|Charmander:Fi|Charmeleon:Fi|Charizard:Fi,Fl|Squirtle:Wa|Wartortle:Wa|Blastoise:Wa|Caterpie:Bu|Metapod:Bu|Butterfree:Bu,Fl|Weedle:Bu,Po|Kakuna:Bu,Po|Beedrill:Bu,Po|Pidgey:No,Fl|Pidgeotto:No,Fl|Pidgeot:No,Fl|Rattata:No|Raticate:No|Spearow:No,Fl|Fearow:No,Fl|Ekans:Po|Arbok:Po|Pikachu:El|Raichu:El|Sandshrew:Gd|Sandslash:Gd|Nidoran♀:Po|Nidorina:Po|Nidoqueen:Po,Gd|Nidoran♂:Po|Nidorino:Po|Nidoking:Po,Gd|Clefairy:No|Clefable:No|Vulpix:Fi|Ninetales:Fi|Jigglypuff:No|Wigglytuff:No|Zubat:Po,Fl|Golbat:Po,Fl|Oddish:Gr,Po|Gloom:Gr,Po|Vileplume:Gr,Po|Paras:Bu,Gr|Parasect:Bu,Gr|Venonat:Bu,Po|Venomoth:Bu,Po|Diglett:Gd|Dugtrio:Gd|Meowth:No|Persian:No|Psyduck:Wa|Golduck:Wa|Mankey:Fg|Primeape:Fg|Growlithe:Fi|Arcanine:Fi|Poliwag:Wa|Poliwhirl:Wa|Poliwrath:Wa,Fg|Abra:Ps|Kadabra:Ps|Alakazam:Ps|Machop:Fg|Machoke:Fg|Machamp:Fg|Bellsprout:Gr,Po|Weepinbell:Gr,Po|Victreebel:Gr,Po|Tentacool:Wa,Po|Tentacruel:Wa,Po|Geodude:Ro,Gd|Graveler:Ro,Gd|Golem:Ro,Gd|Ponyta:Fi|Rapidash:Fi|Slowpoke:Wa,Ps|Slowbro:Wa,Ps|Magnemite:El|Magneton:El|Farfetch'd:No,Fl|Doduo:No,Fl|Dodrio:No,Fl|Seel:Wa|Dewgong:Wa,Ic|Grimer:Po|Muk:Po|Shellder:Wa|Cloyster:Wa,Ic|Gastly:Gh,Po|Haunter:Gh,Po|Gengar:Gh,Po|Onix:Ro,Gd|Drowzee:Ps|Hypno:Ps|Krabby:Wa|Kingler:Wa|Voltorb:El|Electrode:El|Exeggcute:Gr,Ps|Exeggutor:Gr,Ps|Cubone:Gd|Marowak:Gd|Hitmonlee:Fg|Hitmonchan:Fg|Lickitung:No|Koffing:Po|Weezing:Po|Rhyhorn:Gd,Ro|Rhydon:Gd,Ro|Chansey:No|Tangela:Gr|Kangaskhan:No|Horsea:Wa|Seadra:Wa|Goldeen:Wa|Seaking:Wa|Staryu:Wa|Starmie:Wa,Ps|Mr. Mime:Ps|Scyther:Bu,Fl|Jynx:Ic,Ps|Electabuzz:El|Magmar:Fi|Pinsir:Bu|Tauros:No|Magikarp:Wa|Gyarados:Wa,Fl|Lapras:Wa,Ic|Ditto:No|Eevee:No|Vaporeon:Wa|Jolteon:El|Flareon:Fi|Porygon:No|Omanyte:Ro,Wa|Omastar:Ro,Wa|Kabuto:Ro,Wa|Kabutops:Ro,Wa|Aerodactyl:Ro,Fl|Snorlax:No|Articuno:Ic,Fl|Zapdos:El,Fl|Moltres:Fi,Fl|Dratini:Dr|Dragonair:Dr|Dragonite:Dr,Fl|Mewtwo:Ps|Mew:Ps`;
 // Not catchable in the wild: starters & evolutions, gifts, fossils, trades, prizes, evolution-only
 const NOT_WILD = new Set([1,2,3,4,5,6,7,8,9,12,15,18,26,31,34,36,38,59,62,65,68,71,76,78,83,91,94,103,106,107,121,122,124,131,133,134,135,136,137,138,139,140,141,142,149,151]);
 
@@ -65,15 +89,16 @@ mons.forEach(m => {
   const b = document.createElement('button');
   b.className = 'tile';
   b.dataset.types = m.types.join(',');
-  b.setAttribute('aria-pressed','false');
+  b.setAttribute('aria-pressed','false');b.dataset.name=m.name.toLowerCase();b.dataset.id=String(m.id);b.setAttribute('aria-label',m.name+', '+m.types.join(' and ')+(NOT_WILD.has(m.id)?'':', found in the wild'));
   b.title = 'Click to black out / reveal';
   b.innerHTML = `
     <span class="num">#${String(m.id).padStart(3,'0')}</span>
-    ${NOT_WILD.has(m.id) ? '' : '<span class="wild" title="Found in the wild">🌿</span>'}
-    <div class="wrap"><img src="${IMG(m.id)}" alt="${m.name}" loading="lazy"></div>
+    ${NOT_WILD.has(m.id) ? '' : '<span class="wild" role="img" aria-label="Can be found in the wild" title="Can be found in the wild">🌿</span>'}
+    <div class="wrap"><img src="${IMG(m.id)}" alt="${m.name}" loading="lazy" onerror="this.replaceWith(document.createTextNode('No image'))"></div>
     <span class="name">${m.name}</span>
     <span class="types">${m.types.map(t => `<span class="t" style="background:${TYPES[t]}">${t}</span>`).join('')}</span>`;
   b.onclick = () => {
+    if (curTarget() != null) { sel = m; render(); return; }
     const on = b.classList.toggle('crossed');
     b.setAttribute('aria-pressed', on);
     update();
@@ -81,24 +106,179 @@ mons.forEach(m => {
   grid.appendChild(b);
 });
 
+const cnt=document.getElementById('cnt'), search=document.getElementById('q');
+const emptyEl=document.createElement('div');emptyEl.className='empty';emptyEl.hidden=true;emptyEl.textContent='No Pokémon match these filters.';grid.appendChild(emptyEl);
 function update(){
-  const f = filter.value;
-  let shown = 0, crossed = 0;
-  grid.querySelectorAll('.tile').forEach(t => {
-    const ok = !f || t.dataset.types.split(',').includes(f);
-    t.classList.toggle('gone', !ok);
-    if (ok) { shown++; if (t.classList.contains('crossed')) crossed++; }
+  const f=filter.value,n=+cnt.value,q=search.value.trim().toLowerCase().replace(/^#/,'');
+  let shown=0,crossed=0;
+  grid.querySelectorAll('.tile').forEach(t=>{
+    const ty=t.dataset.types.split(',');
+    const ok=(!f||ty.includes(f))&&(!n||ty.length===n)&&(!q||t.dataset.name.includes(q)||t.dataset.id===q.replace(/^0+/,''));
+    t.classList.toggle('gone',!ok);
+    if(ok){shown++;if(t.classList.contains('crossed'))crossed++;}
   });
-  count.textContent = `Showing ${shown} • ${crossed} blacked out`;
+  emptyEl.hidden=shown>0;
+  count.textContent=shown+' Pokémon shown • '+crossed+' crossed out';
 }
-filter.onchange = update;
-document.getElementById('reset').onclick = () => {
-  filter.value = '';
-  grid.querySelectorAll('.tile').forEach(t => { t.classList.remove('crossed'); t.setAttribute('aria-pressed','false'); });
+filter.onchange=cnt.onchange=update;search.oninput=update;
+document.getElementById('clearf').onclick=()=>{filter.value='';cnt.value='';search.value='';update();};
+document.getElementById('reset').onclick=()=>{
+  const any=grid.querySelector('.tile.crossed');
+  if(any&&!confirm('Clear all crossed-out Pokémon? (Filters stay as they are.)'))return;
+  grid.querySelectorAll('.tile').forEach(t=>{t.classList.remove('crossed');t.setAttribute('aria-pressed','false');});
   update();
-  scrollTo({top:0, behavior:'smooth'});
 };
 update();
+
+/* ---------- Party / multiplayer (PeerJS, host-authoritative) ---------- */
+const PREFIX='kanto-pokedex-party-', MAX=8, $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let peer=null, hostConn=null, isHost=false, me=0, partyCode='', notice='', sel=null;
+const emptyS=()=>({slots:[],names:{},waiting:[],mons:{},picked:[],phase:'lobby',task:null,left:0,round:0,host:1});
+let S=emptyS();
+const freshHost=()=>({slots:{},names:{},eligible:[],assign:{},tasks:{},phase:'lobby',round:0});
+let H=freshHost();
+try{$('uname').value=localStorage.getItem('kantoName')||'';}catch(e){}
+
+const curTarget=()=>S.phase==='picking'&&S.task!=null&&S.slots.includes(S.task)?S.task:null;
+function send(d){if(isHost)handle(1,d);else if(hostConn&&hostConn.open)hostConn.send(d);}
+function getName(){
+  const n=$('uname').value.trim().replace(/\s+/g,' ');
+  if(n.length<2||n.length>20){notice='Enter a name between 2 and 20 characters.';render();return null;}
+  try{localStorage.setItem('kantoName',n);}catch(e){}
+  return n;
+}
+function createParty(){
+  const name=getName();if(!name)return;
+  leaveParty();notice='';
+  partyCode=Math.random().toString(36).slice(2,7).toUpperCase().padEnd(5,'X');
+  const pr=peer=new Peer(PREFIX+partyCode);
+  pr.on('open',()=>{isHost=true;me=1;H=freshHost();H.slots[1]=null;H.names[1]=name;H.eligible=[1];broadcast();});
+  pr.on('error',e=>{if(e.type==='unavailable-id')createParty();else fail('Connection error ('+e.type+')');});
+  pr.on('connection',c=>{
+    c.on('data',d=>{
+      if(d.t==='hello'){
+        const f=[...Array(MAX)].map((_,i)=>i+1).find(x=>!(x in H.slots));
+        if(!f){c.send({t:'full'});return;}
+        let base=String(d.name||'').trim().replace(/\s+/g,' ').slice(0,20);if(base.length<2)base='Player '+f;
+        let nm=base,i=2;while(Object.values(H.names).includes(nm))nm=base+' ('+i++ +')';
+        H.slots[f]=c;H.names[f]=nm;c.slot=f;
+        if(H.phase==='lobby')H.eligible.push(f); // joining mid-round => waiting for next round
+        broadcast();
+      }else if(c.slot)handle(c.slot,d);
+    });
+    c.on('close',()=>{
+      if(!c.slot)return;const s=c.slot;
+      delete H.slots[s];delete H.names[s];delete H.assign[s];delete H.tasks[s];
+      H.eligible=H.eligible.filter(x=>x!==s);
+      for(const k in H.tasks)if(H.tasks[k]===s)delete H.tasks[k];
+      broadcast();
+    });
+  });
+}
+function handle(s,d){
+  if(d.t==='set'){
+    // only during picking, only for the player you were assigned
+    if(H.phase==='picking'&&H.tasks[s]===d.target&&H.eligible.includes(d.target)&&d.mon>=1&&d.mon<=151){
+      H.assign[d.target]=d.mon;delete H.tasks[s];
+    }
+  }else if(s===1&&d.t==='newround'){
+    const ids=Object.keys(H.slots).map(Number);
+    H.eligible=ids;H.assign={};H.tasks={};H.phase='lobby';
+    if(ids.length>1){
+      let t;do{t=[...ids].sort(()=>Math.random()-.5);}while(t.some((x,i)=>x===ids[i]));
+      ids.forEach((id,i)=>H.tasks[id]=t[i]);
+      H.phase='picking';H.round++;
+    }
+  }else if(s===1&&d.t==='start'&&H.phase==='ready')H.phase='playing';
+  broadcast();
+}
+function broadcast(){
+  const slots=Object.keys(H.slots).map(Number).sort((a,b)=>a-b);
+  if(H.phase==='picking'&&!Object.keys(H.tasks).length)H.phase='ready';
+  if(H.phase!=='lobby'&&H.eligible.length<2){H.phase='lobby';H.assign={};H.tasks={};H.eligible=slots.slice();}
+  const waiting=H.phase==='lobby'?[]:slots.filter(x=>!H.eligible.includes(x));
+  const picked=Object.keys(H.assign).map(Number);
+  for(const s of slots){
+    // pokémon are only revealed once the game starts, only to players in the round, and never your own
+    const m={};if(H.phase==='playing'&&H.eligible.includes(s))for(const k in H.assign)if(+k!==s)m[k]=H.assign[k];
+    const msg={t:'state',you:s,slots,names:H.names,waiting,mons:m,picked,phase:H.phase,task:H.tasks[s]??null,left:Object.keys(H.tasks).length,round:H.round,host:1};
+    if(s===1)applyState(msg);else H.slots[s].send(msg);
+  }
+}
+function joinParty(){
+  const name=getName();if(!name)return;
+  const c=$('code').value.trim().toUpperCase();if(!c){notice='Enter a party code.';render();return;}
+  leaveParty();notice='';partyCode=c;
+  const pr=peer=new Peer();
+  pr.on('open',()=>{
+    const hc=hostConn=pr.connect(PREFIX+c,{reliable:true});
+    hc.on('open',()=>hc.send({t:'hello',name}));
+    hc.on('data',d=>{if(d.t==='state'){me=d.you;applyState(d);}else if(d.t==='full')fail('Party is full.');});
+    hc.on('close',()=>fail('Party ended (host left).'));
+  });
+  pr.on('error',e=>fail(e.type==='peer-unavailable'?'No party with that code.':'Connection error ('+e.type+')'));
+}
+function leaveParty(){
+  const p=peer;peer=null;hostConn=null;
+  if(p)try{p.destroy();}catch(e){}
+  isHost=false;me=0;partyCode='';S=emptyS();sel=null;H=freshHost();render();
+}
+function fail(msg){leaveParty();notice=msg;render();}
+function applyState(m){S=m;if(curTarget()==null)sel=null;render();}
+function confirmPick(){const t=curTarget();if(t==null||!sel)return;const id=sel.id;sel=null;send({t:'set',target:t,mon:id});}
+
+function render(){
+  const inParty=me>0;
+  $('uname').style.display=$('create').style.display=$('code').style.display=$('join').style.display=inParty?'none':'';
+  $('leave').style.display=inParty?'':'none';
+  $('pcode').innerHTML=inParty?'Party code: <b>'+esc(partyCode)+'</b> <button id="cc">Copy</button>':esc(notice);
+  if(inParty)$('cc').onclick=()=>{try{navigator.clipboard.writeText(partyCode);$('cc').textContent='Copied!';}catch(e){}};
+  const box=$('players'),ban=$('banner'),t=curTarget(),ph=S.phase,nm=s=>esc(S.names[s]||'?');
+  document.body.classList.toggle('picking',t!=null);
+  box.style.display=inParty?'flex':'none';box.innerHTML='';
+  if(!inParty){ban.style.display='none';return;}
+  const amHost=me===S.host,amWaiting=S.waiting.includes(me);
+  const order=[...S.waiting,...S.slots.filter(x=>!S.waiting.includes(x))];
+  order.forEach(s=>{
+    const b=document.createElement('div'),w=S.waiting.includes(s);
+    b.className='pl'+(s===me?' me':'')+(w?' wait':'');
+    const id=S.mons[s],mon=id&&mons[id-1];
+    let pic,sub;
+    if(w){pic='<div class="q">⏳</div>';sub='Waiting for next round';}
+    else if(ph==='playing'){
+      pic=s===me?'<div class="q">?</div>':mon?'<img src="'+IMG(id)+'" alt="">':'<div class="q">–</div>';
+      sub=s===me?'Hidden from you':mon?esc(mon.name):'No Pokémon';
+    }else{
+      const ok=S.picked.includes(s);
+      pic='<div class="q">'+(ph==='lobby'?'•':ok?'✓':'…')+'</div>';
+      sub=ph==='lobby'?'':ok?'Pokémon chosen':'Waiting for a pick';
+    }
+    b.innerHTML=pic+'<span><b>'+nm(s)+(s===me?' (you)':'')+(s===S.host?' ★ Host':'')+'</b><small>'+sub+'</small></span>';
+    box.appendChild(b);
+  });
+  if(amHost){
+    const nr=document.createElement('button');nr.textContent=S.round?'New round':'Start round';nr.disabled=S.slots.length<2;
+    nr.onclick=()=>send({t:'newround'});box.appendChild(nr);
+    const st=document.createElement('button');st.textContent=ph==='playing'?'Game on!':'Start game';
+    st.disabled=ph!=='ready';if(ph==='ready')st.className='go';st.onclick=()=>send({t:'start'});box.appendChild(st);
+  }
+  const R=S.round?'<b>Round '+S.round+'</b> · ':'';
+  let h;
+  if(ph==='lobby')h=S.slots.length<2?'Waiting for at least 2 players…':amHost?'Press <b>Start round</b> when everyone is in.':'Waiting for the host to start a round.';
+  else if(amWaiting)h=R+'You joined mid-round, so you will be included from the next round.';
+  else if(ph==='picking'){
+    if(t!=null)h=sel?R+'Set <b>'+nm(t)+'</b> to <b>'+esc(sel.name)+'</b>? <button id="ok" class="go">Confirm</button> <span>or click another tile to change</span>':R+'Choose a Pokémon for <b>'+nm(t)+'</b> – click a tile below.';
+    else h=R+'Your pick is in. Waiting for '+S.left+' more pick'+(S.left===1?'':'s')+'…';
+  }else if(ph==='ready')h=R+(amHost?'Everyone has picked! Press the green <b>Start game</b> button.':'Everyone has picked! Waiting for the host to start.');
+  else h=R+'Game on! Work out your own Pokémon. '+(amHost?'Press <b>New round</b> to play again.':'The host starts the next round.');
+  ban.style.display='flex';ban.innerHTML=h;
+  if($('ok'))$('ok').onclick=confirmPick;
+}
+$('create').onclick=createParty;$('join').onclick=joinParty;$('leave').onclick=leaveParty;
+$('code').onkeydown=e=>{if(e.key==='Enter')joinParty();};
+addEventListener('beforeunload',()=>{if(peer)peer.destroy();});
 </script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </body>
 </html>
