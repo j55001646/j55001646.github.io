@@ -145,7 +145,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:16px}
     <input id="q" type="text" placeholder="Search Pokémon by name or Pokédex number..." aria-label="Search Pokémon" autocomplete="off">
     <button id="qc" aria-label="Clear search">×</button></div>
   <button class="btn" id="fbtn" aria-expanded="false">Filters<span class="badge" id="fbadge" hidden>0</span></button>
-  <button class="btn" id="xall" title="Cross off every Pokémon matching your current search/filters" hidden>Cross off results</button><button class="btn" id="xrest" title="Bring back every crossed-off Pokémon matching your current search/filters" hidden>Restore results</button><button class="btn" id="xevery" title="Cross off all 151 Pokémon" hidden>Cross off all</button>
+  <button class="btn" id="xall" title="Cross off every Pokémon matching your current search/filters" hidden>Cross off results</button><button class="btn" id="xrest" title="Bring back every crossed-off Pokémon matching your current search/filters" hidden>Restore results</button>
   <button class="btn" id="fclear">Clear filters</button>
   <span id="count" aria-live="polite"></span>
   <div id="fpanel" role="group" aria-label="Filters"></div>
@@ -254,7 +254,6 @@ function applyFilters(){
   emptyEl.hidden=shown>0;
   const n=SECTIONS.reduce((a,s)=>a+secCount(s),0)+(F.q?1:0);
   $('count').textContent=shown+' Pokémon shown · '+crossed+' crossed out'+(n?' · '+n+' filter'+(n>1?'s':'')+' active':'');
-  $('xall').hidden=$('xrest').hidden=$('xevery').hidden=!n;$('fbadge').textContent=n;$('fbadge').hidden=!n;$('qc').style.display=F.q?'block':'none';
 }
 function buildFilters(){
   $('fpanel').innerHTML=SECTIONS.map(s=>{
@@ -289,7 +288,6 @@ buildFilters();refresh();
 const setCross=(list,on)=>{list.forEach(m=>{m.el.classList.toggle('crossed',on);m.el.setAttribute('aria-pressed',on);});applyFilters();};
 $('xall').onclick=()=>setCross(mons.filter(m=>!m.el.classList.contains('gone')),true);   // only what the current search/filters show
 $('xrest').onclick=()=>setCross(mons.filter(m=>!m.el.classList.contains('gone')),false);
-$('xevery').onclick=()=>setCross(mons,true);
 function closeFilters(){$('fpanel').classList.remove('open');$('fbtn').setAttribute('aria-expanded','false');}
 document.addEventListener('click',e=>{if(!e.target.closest('#fpanel,#fbtn,#active'))closeFilters();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFilters();});
