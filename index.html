@@ -3,282 +3,505 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kanto Pokédex Tiles</title>
+<title>Pokémon Guess Who</title>
+<meta name="description" content="Kanto 151: a multiplayer Pokémon Guess Who? game. Join a party, ask questions and guess your mystery Pokémon.">
+<meta name="color-scheme" content="light dark">
+<!-- TODO: replace YOUR-USERNAME / YOUR-REPO with your real GitHub Pages address (see README) -->
+<link rel="canonical" href="https://YOUR-USERNAME.github.io/YOUR-REPO/">
+<meta property="og:title" content="Pokémon Guess Who">
+<meta property="og:description" content="Kanto 151: a multiplayer Pokémon Guess Who? game. Join a party, ask questions and guess your mystery Pokémon.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://YOUR-USERNAME.github.io/YOUR-REPO/">
+<meta property="og:image" content="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pokémon Guess Who">
+<meta name="twitter:description" content="Kanto 151: a multiplayer Pokémon Guess Who? game. Join a party, ask questions and guess your mystery Pokémon.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png">
+<script>(function(){var t=null;try{t=localStorage.getItem('kantoTheme');}catch(e){}if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;})();</script>
 <style>
-:root{--bg:#14161c;--card:#1f232d;--text:#eef0f5;--muted:#9aa3b5;--accent:#e63946}
+:root{color-scheme:light;--bg:#f5f6fa;--surface:#fff;--surface2:#f6f7fb;--text:#1d2433;--muted:#667086;--line:#e3e6ef;--accent:#e63946;--blue:#2f6fe0;--on-blue:#fff;--blue-soft:#eaf2ff;--green:#238636;--on-go:#fff;--shadow:rgba(20,30,60,.12);--dbg:#fff3f3;--dline:#f3c1c5;--dtext:#8a1c25;--ov:rgba(15,20,35,.5);--xbg:#b4b9c8;--xart:#2c303e;--xtext:#262b39;--ok:#2f7d32}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f1218;--surface:#181c25;--surface2:#1f2430;--text:#e8ebf2;--muted:#9aa3b8;--line:#2d3342;--accent:#ef4b58;--blue:#6aa1ff;--on-blue:#0b1226;--blue-soft:#1b2a47;--green:#3fb950;--on-go:#04140a;--shadow:rgba(0,0,0,.55);--dbg:#3a1a1e;--dline:#6e2b32;--dtext:#ffb3ba;--ov:rgba(0,0,0,.65);--xbg:#07080c;--xart:#242938;--xtext:#aeb5c6;--ok:#6fd37a}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
-header{position:sticky;top:0;z-index:5;background:rgba(20,22,28,.95);backdrop-filter:blur(6px);padding:12px 16px;border-bottom:1px solid #2c3140;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-h1{font-size:1.2rem;margin:0 auto 0 0}
-select,button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid #3a4154;background:var(--card);color:var(--text);cursor:pointer}
-button#reset{background:var(--accent);border-color:var(--accent);font-weight:600}
-#count{color:var(--muted);font-size:.9rem}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:16px;max-width:1400px;margin:0 auto}
-.tile{position:relative;background:var(--card);border:2px solid #2c3140;border-radius:14px;padding:10px;text-align:center;color:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .12s,border-color .12s}
-.tile:hover{transform:translateY(-2px);border-color:#4a5270}
-.tile.gone{display:none}
-.num{position:absolute;top:8px;left:10px;font-size:.75rem;color:var(--muted)}
-.wild{position:absolute;top:5px;right:8px;font-size:1.1rem}
-.wrap{position:relative;width:100px;height:100px;margin-top:10px}
-.wrap img{width:100%;height:100%;object-fit:contain;transition:filter .15s}
-.tile.crossed .wrap img{filter:brightness(0)}
-.tile.crossed .wrap::after{content:"✕";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem;font-weight:700;color:var(--accent);line-height:1}
-.tile.crossed{border-color:var(--accent)}
-.name{font-weight:600;font-size:.95rem}
-.types{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
-.t{font-size:.7rem;padding:2px 8px;border-radius:99px;color:#fff;font-weight:600;text-shadow:0 1px 1px rgba(0,0,0,.4)}
-.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px}
-footer{text-align:center;color:var(--muted);font-size:.8rem;padding:16px}
-#party{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#party input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid #3a4154;background:var(--card);color:var(--text);width:90px;text-transform:uppercase;letter-spacing:2px}
-#pcode{color:var(--muted);font-size:.9rem}
-#pcode b{color:var(--text);letter-spacing:3px;font-size:1.05rem}
-#players,#banner{flex-basis:100%;display:none;gap:10px;flex-wrap:wrap;align-items:center}
-.pl{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 6px;border-radius:12px;border:2px solid #2c3140;min-width:140px;text-align:left}
-.pl.wait{opacity:.7;border-style:dashed}
-#pcode button{padding:3px 8px;font-size:.8rem}
-:focus-visible{outline:3px solid #4a8cff;outline-offset:2px}
-.pl.me{border-color:#4a8cff;cursor:default}
-.pl img,.pl .q{width:44px;height:44px;object-fit:contain;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--muted)}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);transition:background .2s,color .2s}
+button,input{font:inherit;color:inherit}button{cursor:pointer}
+input{background:var(--surface);color:var(--text)}input::placeholder{color:var(--muted)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.btn{padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-weight:600;transition:.15s}
+.btn:hover:not(:disabled){border-color:var(--muted);box-shadow:0 1px 6px var(--shadow)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.go{background:var(--green);border-color:var(--green);color:var(--on-go)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:1.35rem}header small{color:var(--muted)}
+.sp{margin-left:auto;display:flex;gap:8px}
+#theme{padding:9px 12px}
+#notice{display:none;margin:10px 16px 0;padding:10px 14px;border-radius:10px;background:var(--dbg);border:1px solid var(--dline);color:var(--dtext)}
+#game{display:none;position:sticky;top:0;z-index:20;max-height:55vh;overflow:auto;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 4px 14px var(--shadow);padding:10px 16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#gcode{font-size:1.2rem;font-weight:800;letter-spacing:4px}
+.players{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.gh{flex-basis:100%;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px}
+.pl{display:flex;gap:8px;align-items:center;padding:5px 12px 5px 6px;border:2px solid var(--line);border-radius:12px;background:var(--surface2);min-width:150px;transition:.2s}
+.pl img,.pl .q{width:44px;height:44px;object-fit:contain;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--muted)}
 .pl small{display:block;color:var(--muted)}
-#banner{background:#243050;border:1px solid #4a8cff;border-radius:10px;padding:8px 12px}
-body.picking .tile{outline:2px dashed #4a8cff;outline-offset:-4px}
-.go{background:#2ea043!important;border-color:#2ea043!important;color:#fff;font-weight:700}
-button:disabled{opacity:.5;cursor:not-allowed}
+.pl em{display:inline-block;font-style:normal;font-size:.68rem;font-weight:800;letter-spacing:.05em;background:var(--blue);color:var(--on-blue);border-radius:6px;padding:1px 6px;margin-top:2px}
+.pl.turn{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 30%,transparent)}
+.pl.wait{opacity:.75;border-style:dashed}
+.pl.out{opacity:.6}.pl.out b{color:var(--muted);text-shadow:0 1px 3px var(--shadow)}.pl.out img{filter:grayscale(1)}
+.pl.out em{background:var(--dtext);color:var(--dbg)}
+.pl.me:not(.turn){border-color:var(--muted)}
+.dim{opacity:.5;text-decoration:line-through}
+#gmsg{margin:6px 0;line-height:1.5}
+#gturn{display:none;margin-top:8px;padding:10px;border:1px solid var(--blue);border-radius:12px;background:var(--blue-soft)}
+.cb{flex:1 1 220px;display:flex;flex-direction:column;gap:4px}
+.cb input{padding:9px 12px;border-radius:10px;border:1px solid var(--line)}
+#gprev{display:flex;align-items:center;gap:6px;font-weight:600}#gprev img{width:40px;height:40px}
+.gl{list-style:none;margin:8px 0 0;padding:4px;max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.gl li{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:8px;cursor:pointer}
+.gl li img{width:32px;height:32px;object-fit:contain}.gl li.act{background:var(--blue-soft);outline:2px solid var(--blue)}.gl .no{color:var(--muted);cursor:default}
+#gwin img{width:110px;height:110px;object-fit:contain}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px 0;max-width:1500px;margin:0 auto}
+.search{position:relative;flex:1 1 320px;max-width:560px}
+.search input{width:100%;padding:11px 38px;border-radius:12px;border:1px solid var(--line);transition:.15s}
+.search input:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 25%,transparent);outline:none}
+.search .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font-size:1.1rem;padding:6px 10px;display:none}
+.tools{position:relative}
+#fpanel{display:none;position:absolute;left:16px;right:16px;top:100%;margin-top:6px;z-index:15;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 12px 32px var(--shadow);max-height:min(62vh,500px);overflow:auto;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+#fpanel.open{display:grid}
+.fs{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;align-self:start}
+.fs.wide{grid-column:span 2}
+@media(max-width:560px){.fs.wide{grid-column:auto}}
+.fh{display:flex;align-items:center;gap:6px;font-weight:700;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
+.fs .chip{padding:5px 10px;font-size:.8rem;min-height:30px}
+.badge{background:var(--accent);color:#fff;border-radius:99px;font-size:.7rem;padding:1px 7px;margin-left:6px;font-weight:700}
+#count{color:var(--muted);font-size:.9rem;margin-left:auto}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:8px}
+.seg button{border:0;background:var(--surface);padding:5px 12px;font-size:.78rem;color:var(--muted)}.seg button.on{background:var(--text);color:var(--surface)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{--c:var(--text);padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font-size:.82rem;transition:.12s;min-height:32px}
+.chip:hover{border-color:var(--muted)}
+.chip.t{border-left:6px solid var(--c)}
+.chip.on{background:var(--c);border-color:var(--c);color:#fff}
+.chip.on:not(.t){background:var(--text);color:var(--surface);border-color:var(--text)}
+.rng{display:flex;gap:12px;flex-wrap:wrap}.rng label{font-size:.82rem;color:var(--muted)}
+.rng input{width:84px;padding:7px 9px;border-radius:9px;border:1px solid var(--line);margin-left:6px}
+#active{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 0;max-width:1500px;margin:0 auto}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:14px;padding:16px;max-width:1500px;margin:0 auto}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text);box-shadow:0 1px 3px var(--shadow);transition:transform .12s,box-shadow .12s,background .2s,border-color .2s}
+.tile:hover{transform:translateY(-2px);box-shadow:0 6px 16px var(--shadow)}
+.tile.gone{display:none}
+.num{align-self:flex-end;font-size:.72rem;color:var(--muted)}
+.art{width:92px;height:92px;display:flex;align-items:center;justify-content:center;border-radius:14px;transition:background .2s}.art img{width:100%;height:100%;object-fit:contain;transition:filter .2s}
+.nm{font-weight:700;font-size:.92rem}
+.ty{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.b{font-size:.68rem;font-weight:700;color:#fff;border-radius:99px;padding:2px 8px;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.wd{font-size:.72rem;color:var(--ok);font-weight:600}
+.tile.crossed{background:var(--xbg);border-color:var(--xbg);box-shadow:none}
+.tile.crossed .art{background:var(--xart)}
+.tile.crossed .art img{filter:brightness(0)}
+.tile.crossed .nm,.tile.crossed .num,.tile.crossed .wd{color:var(--xtext)}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px}
+.ov{position:fixed;inset:0;background:var(--ov);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.ov.open{display:flex}
+.modal{background:var(--surface);border-radius:18px;padding:22px;width:100%;max-width:400px;max-height:90vh;overflow:auto;position:relative;box-shadow:0 20px 50px var(--shadow)}
+.modal h2{margin:0 0 14px}.x{position:absolute;right:12px;top:10px;border:0;background:none;font-size:1.5rem;color:var(--muted);padding:6px 10px}
+.modal label{font-weight:600;font-size:.85rem}
+.modal input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);margin:6px 0 14px}
+#mcode{text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:1.2rem}
+.two{display:flex;gap:10px}.two .btn{flex:1}
+#merr{color:var(--dtext);min-height:1.2em;margin-top:10px;font-size:.9rem}#mbusy{color:var(--muted);font-size:.9rem;margin-top:8px}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:16px}
 </style>
 </head>
 <body>
 <header>
-  <h1>Kanto Pokédex</h1>
-  <label>Element: <select id="filter" aria-label="Filter by element"><option value="">All types</option></select></label>
-  <select id="cnt" aria-label="Number of types"><option value="">All Pokémon</option><option value="1">Single type</option><option value="2">Dual type</option></select>
-  <input id="q" type="search" placeholder="Search name or #" aria-label="Search">
-  <button id="clearf">Clear filters</button>
-  <button id="reset">Reset crosses</button>
-  <span id="count"></span>
-  <span id="party">
-    <button id="create">Create party</button>
-    <input id="uname" placeholder="Your name" maxlength="20" style="width:120px;text-transform:none;letter-spacing:0"><input id="code" placeholder="CODE" maxlength="5"><button id="join">Join</button>
-    <span id="pcode"></span><button id="leave" style="display:none">Leave</button>
-  </span>
-  <div id="players"></div>
-  <div id="banner"></div>
+  <div><h1>Kanto 151</h1><small>Pokémon Guess Who?</small></div>
+  <div class="sp"><button class="btn primary" id="play">Play Online</button><button class="btn" id="reset">Reset</button><button class="btn" id="theme" aria-label="Switch to dark theme">🌙</button></div>
 </header>
+<div id="notice" role="alert"></div>
+
+<section id="game" aria-label="Party">
+  <div class="row"><span>Party</span><span id="gcode"></span><button class="btn" id="gcopy">Copy Code</button><span id="gstat" style="color:var(--muted)"></span><button class="btn sp" id="gleave">Leave Party</button></div>
+  <div class="players" id="gplayers"></div>
+  <div id="gmsg" aria-live="polite"></div>
+  <div id="gwin"></div>
+  <button class="btn go" id="gstart" style="display:none"></button>
+  <div id="gturn">
+    <div class="row"><button class="btn" id="gend">End Turn</button><span style="color:var(--muted)">or guess your Pokémon:</span></div>
+    <div class="row" style="margin-top:8px;align-items:flex-end">
+      <div class="cb"><label for="gin" style="font-weight:600">Guess your Pokémon</label>
+        <input id="gin" role="combobox" aria-expanded="false" aria-controls="glist" aria-autocomplete="list" autocomplete="off" placeholder="Search all 151 Pokémon…"></div>
+      <span id="gprev"></span>
+      <button class="btn primary" id="gbtn" disabled>Guess Pokémon</button>
+    </div>
+    <ul class="gl" id="glist" role="listbox" aria-label="Pokémon suggestions" hidden></ul>
+    <div class="row" id="gconf" style="display:none;margin-top:8px"><b id="gct"></b><button class="btn go" id="gyes">Yes, guess it</button><button class="btn" id="gno">Cancel</button></div>
+  </div>
+</section>
+
+<div class="tools">
+  <div class="search"><span class="ic" aria-hidden="true">🔍</span>
+    <input id="q" type="text" placeholder="Search Pokémon by name or Pokédex number..." aria-label="Search Pokémon" autocomplete="off">
+    <button id="qc" aria-label="Clear search">×</button></div>
+  <button class="btn" id="fbtn" aria-expanded="false">Filters<span class="badge" id="fbadge" hidden>0</span></button>
+  <button class="btn" id="xall" title="Cross off every Pokémon matching your current search/filters" hidden>Cross off results</button><button class="btn" id="xrest" title="Bring back every crossed-off Pokémon matching your current search/filters" hidden>Restore results</button><button class="btn" id="xevery" title="Cross off all 151 Pokémon" hidden>Cross off all</button>
+  <button class="btn" id="fclear">Clear filters</button>
+  <span id="count" aria-live="polite"></span>
+  <div id="fpanel" role="group" aria-label="Filters"></div>
+</div>
+
+<div id="active"></div>
 <main id="grid"></main>
-<footer>🌿 = can be caught in the wild in Kanto (Red/Blue/FireRed/LeafGreen). Gifts, fossils, trades, prizes and evolution-only Pokémon are not marked.<br>Party: one person creates a party and shares the 5-letter code. Crossing out tiles stays private to you. It is peer-to-peer, so if the host leaves the party ends.</footer>
+<footer>🌿 = can be caught in the wild in the original Kanto games. Data is best-effort (see README). Pokémon artwork from PokéAPI sprites.</footer>
 
+<div class="ov" id="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="modal">
+    <button class="x" id="mx" aria-label="Close">×</button>
+    <h2 id="mt">Play Online</h2>
+    <label for="mname">Your name</label>
+    <input id="mname" maxlength="20" placeholder="Enter your name" autocomplete="nickname">
+    <div id="mmain" class="two"><button class="btn primary" id="mcreate">Create Party</button><button class="btn" id="mjoinb">Join Party</button></div>
+    <div id="mjoin" style="display:none">
+      <label for="mcode">Party code</label>
+      <input id="mcode" maxlength="6" placeholder="ABC123" autocomplete="off">
+      <div class="two"><button class="btn" id="mback">Back</button><button class="btn primary" id="mjoingo">Join</button></div>
+    </div>
+    <div id="mbusy" aria-live="polite"></div><div id="merr" role="alert"></div>
+    <p style="color:var(--muted);font-size:.8rem;margin:12px 0 0">Share the code with friends to play. Connections are peer-to-peer; the host's browser runs the game.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-const TYPES = {Normal:"#a8a77a",Fire:"#ee8130",Water:"#6390f0",Electric:"#d4a90a",Grass:"#5aa83c",Ice:"#4fb8b8",Fighting:"#c22e28",Poison:"#a33ea1",Ground:"#b8975a",Flying:"#8f7bd6",Psychic:"#f95587",Bug:"#a6b91a",Rock:"#b6a136",Ghost:"#735797",Dragon:"#6f35fc"};
-const A = {No:"Normal",Fi:"Fire",Wa:"Water",El:"Electric",Gr:"Grass",Ic:"Ice",Fg:"Fighting",Po:"Poison",Gd:"Ground",Fl:"Flying",Ps:"Psychic",Bu:"Bug",Ro:"Rock",Gh:"Ghost",Dr:"Dragon"};
-// Name:Type1,Type2 — in Pokédex order (1–151)
-const RAW = `Bulbasaur:Gr,Po|Ivysaur:Gr,Po|Venusaur:Gr,Po|Charmander:Fi|Charmeleon:Fi|Charizard:Fi,Fl|Squirtle:Wa|Wartortle:Wa|Blastoise:Wa|Caterpie:Bu|Metapod:Bu|Butterfree:Bu,Fl|Weedle:Bu,Po|Kakuna:Bu,Po|Beedrill:Bu,Po|Pidgey:No,Fl|Pidgeotto:No,Fl|Pidgeot:No,Fl|Rattata:No|Raticate:No|Spearow:No,Fl|Fearow:No,Fl|Ekans:Po|Arbok:Po|Pikachu:El|Raichu:El|Sandshrew:Gd|Sandslash:Gd|Nidoran♀:Po|Nidorina:Po|Nidoqueen:Po,Gd|Nidoran♂:Po|Nidorino:Po|Nidoking:Po,Gd|Clefairy:No|Clefable:No|Vulpix:Fi|Ninetales:Fi|Jigglypuff:No|Wigglytuff:No|Zubat:Po,Fl|Golbat:Po,Fl|Oddish:Gr,Po|Gloom:Gr,Po|Vileplume:Gr,Po|Paras:Bu,Gr|Parasect:Bu,Gr|Venonat:Bu,Po|Venomoth:Bu,Po|Diglett:Gd|Dugtrio:Gd|Meowth:No|Persian:No|Psyduck:Wa|Golduck:Wa|Mankey:Fg|Primeape:Fg|Growlithe:Fi|Arcanine:Fi|Poliwag:Wa|Poliwhirl:Wa|Poliwrath:Wa,Fg|Abra:Ps|Kadabra:Ps|Alakazam:Ps|Machop:Fg|Machoke:Fg|Machamp:Fg|Bellsprout:Gr,Po|Weepinbell:Gr,Po|Victreebel:Gr,Po|Tentacool:Wa,Po|Tentacruel:Wa,Po|Geodude:Ro,Gd|Graveler:Ro,Gd|Golem:Ro,Gd|Ponyta:Fi|Rapidash:Fi|Slowpoke:Wa,Ps|Slowbro:Wa,Ps|Magnemite:El|Magneton:El|Farfetch'd:No,Fl|Doduo:No,Fl|Dodrio:No,Fl|Seel:Wa|Dewgong:Wa,Ic|Grimer:Po|Muk:Po|Shellder:Wa|Cloyster:Wa,Ic|Gastly:Gh,Po|Haunter:Gh,Po|Gengar:Gh,Po|Onix:Ro,Gd|Drowzee:Ps|Hypno:Ps|Krabby:Wa|Kingler:Wa|Voltorb:El|Electrode:El|Exeggcute:Gr,Ps|Exeggutor:Gr,Ps|Cubone:Gd|Marowak:Gd|Hitmonlee:Fg|Hitmonchan:Fg|Lickitung:No|Koffing:Po|Weezing:Po|Rhyhorn:Gd,Ro|Rhydon:Gd,Ro|Chansey:No|Tangela:Gr|Kangaskhan:No|Horsea:Wa|Seadra:Wa|Goldeen:Wa|Seaking:Wa|Staryu:Wa|Starmie:Wa,Ps|Mr. Mime:Ps|Scyther:Bu,Fl|Jynx:Ic,Ps|Electabuzz:El|Magmar:Fi|Pinsir:Bu|Tauros:No|Magikarp:Wa|Gyarados:Wa,Fl|Lapras:Wa,Ic|Ditto:No|Eevee:No|Vaporeon:Wa|Jolteon:El|Flareon:Fi|Porygon:No|Omanyte:Ro,Wa|Omastar:Ro,Wa|Kabuto:Ro,Wa|Kabutops:Ro,Wa|Aerodactyl:Ro,Fl|Snorlax:No|Articuno:Ic,Fl|Zapdos:El,Fl|Moltres:Fi,Fl|Dratini:Dr|Dragonair:Dr|Dragonite:Dr,Fl|Mewtwo:Ps|Mew:Ps`;
-// Not catchable in the wild: starters & evolutions, gifts, fossils, trades, prizes, evolution-only
-const NOT_WILD = new Set([1,2,3,4,5,6,7,8,9,12,15,18,26,31,34,36,38,59,62,65,68,71,76,78,83,91,94,103,106,107,121,122,124,131,133,134,135,136,137,138,139,140,141,142,149,151]);
-
-const IMG = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-const grid = document.getElementById('grid'), filter = document.getElementById('filter'), count = document.getElementById('count');
-
-const mons = RAW.split('|').map((s,i) => {
-  const [name, t] = s.split(':');
-  return {id:i+1, name, types:t.split(',').map(c => A[c])};
-});
-
-Object.keys(TYPES).forEach(t => filter.add(new Option(t, t)));
-
-mons.forEach(m => {
-  const b = document.createElement('button');
-  b.className = 'tile';
-  b.dataset.types = m.types.join(',');
-  b.setAttribute('aria-pressed','false');b.dataset.name=m.name.toLowerCase();b.dataset.id=String(m.id);b.setAttribute('aria-label',m.name+', '+m.types.join(' and ')+(NOT_WILD.has(m.id)?'':', found in the wild'));
-  b.title = 'Click to black out / reveal';
-  b.innerHTML = `
-    <span class="num">#${String(m.id).padStart(3,'0')}</span>
-    ${NOT_WILD.has(m.id) ? '' : '<span class="wild" role="img" aria-label="Can be found in the wild" title="Can be found in the wild">🌿</span>'}
-    <div class="wrap"><img src="${IMG(m.id)}" alt="${m.name}" loading="lazy" onerror="this.replaceWith(document.createTextNode('No image'))"></div>
-    <span class="name">${m.name}</span>
-    <span class="types">${m.types.map(t => `<span class="t" style="background:${TYPES[t]}">${t}</span>`).join('')}</span>`;
-  b.onclick = () => {
-    if (curTarget() != null) { sel = m; render(); return; }
-    const on = b.classList.toggle('crossed');
-    b.setAttribute('aria-pressed', on);
-    update();
-  };
-  grid.appendChild(b);
-});
-
-const cnt=document.getElementById('cnt'), search=document.getElementById('q');
-const emptyEl=document.createElement('div');emptyEl.className='empty';emptyEl.hidden=true;emptyEl.textContent='No Pokémon match these filters.';grid.appendChild(emptyEl);
-function update(){
-  const f=filter.value,n=+cnt.value,q=search.value.trim().toLowerCase().replace(/^#/,'');
-  let shown=0,crossed=0;
-  grid.querySelectorAll('.tile').forEach(t=>{
-    const ty=t.dataset.types.split(',');
-    const ok=(!f||ty.includes(f))&&(!n||ty.length===n)&&(!q||t.dataset.name.includes(q)||t.dataset.id===q.replace(/^0+/,''));
-    t.classList.toggle('gone',!ok);
-    if(ok){shown++;if(t.classList.contains('crossed'))crossed++;}
-  });
-  emptyEl.hidden=shown>0;
-  count.textContent=shown+' Pokémon shown • '+crossed+' crossed out';
-}
-filter.onchange=cnt.onchange=update;search.oninput=update;
-document.getElementById('clearf').onclick=()=>{filter.value='';cnt.value='';search.value='';update();};
-document.getElementById('reset').onclick=()=>{
-  const any=grid.querySelector('.tile.crossed');
-  if(any&&!confirm('Clear all crossed-out Pokémon? (Filters stay as they are.)'))return;
-  grid.querySelectorAll('.tile').forEach(t=>{t.classList.remove('crossed');t.setAttribute('aria-pressed','false');});
-  update();
-};
-update();
-
-/* ---------- Party / multiplayer (PeerJS, host-authoritative) ---------- */
-const PREFIX='kanto-pokedex-party-', MAX=8, $=id=>document.getElementById(id);
+const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let peer=null, hostConn=null, isHost=false, me=0, partyCode='', notice='', sel=null;
-const emptyS=()=>({slots:[],names:{},waiting:[],mons:{},picked:[],phase:'lobby',task:null,left:0,round:0,host:1});
-let S=emptyS();
-const freshHost=()=>({slots:{},names:{},eligible:[],assign:{},tasks:{},phase:'lobby',round:0});
-let H=freshHost();
-try{$('uname').value=localStorage.getItem('kantoName')||'';}catch(e){}
+const TYPES={Normal:"#8c8c6e",Fire:"#e8702a",Water:"#4f7fe8",Electric:"#c99a00",Grass:"#4c9a30",Ice:"#3aa3a3",Fighting:"#b0261f",Poison:"#9a3598",Ground:"#a88540",Flying:"#7b69c9",Psychic:"#e0457b",Bug:"#8f9f10",Rock:"#9a8a2c",Ghost:"#654a8a",Dragon:"#5a2be0"};
+const TYPE_LIST=Object.keys(TYPES);
+const A={No:"Normal",Fi:"Fire",Wa:"Water",El:"Electric",Gr:"Grass",Ic:"Ice",Fg:"Fighting",Po:"Poison",Gd:"Ground",Fl:"Flying",Ps:"Psychic",Bu:"Bug",Ro:"Rock",Gh:"Ghost",Dr:"Dragon"};
+const RAW=`Bulbasaur:Gr,Po|Ivysaur:Gr,Po|Venusaur:Gr,Po|Charmander:Fi|Charmeleon:Fi|Charizard:Fi,Fl|Squirtle:Wa|Wartortle:Wa|Blastoise:Wa|Caterpie:Bu|Metapod:Bu|Butterfree:Bu,Fl|Weedle:Bu,Po|Kakuna:Bu,Po|Beedrill:Bu,Po|Pidgey:No,Fl|Pidgeotto:No,Fl|Pidgeot:No,Fl|Rattata:No|Raticate:No|Spearow:No,Fl|Fearow:No,Fl|Ekans:Po|Arbok:Po|Pikachu:El|Raichu:El|Sandshrew:Gd|Sandslash:Gd|Nidoran♀:Po|Nidorina:Po|Nidoqueen:Po,Gd|Nidoran♂:Po|Nidorino:Po|Nidoking:Po,Gd|Clefairy:No|Clefable:No|Vulpix:Fi|Ninetales:Fi|Jigglypuff:No|Wigglytuff:No|Zubat:Po,Fl|Golbat:Po,Fl|Oddish:Gr,Po|Gloom:Gr,Po|Vileplume:Gr,Po|Paras:Bu,Gr|Parasect:Bu,Gr|Venonat:Bu,Po|Venomoth:Bu,Po|Diglett:Gd|Dugtrio:Gd|Meowth:No|Persian:No|Psyduck:Wa|Golduck:Wa|Mankey:Fg|Primeape:Fg|Growlithe:Fi|Arcanine:Fi|Poliwag:Wa|Poliwhirl:Wa|Poliwrath:Wa,Fg|Abra:Ps|Kadabra:Ps|Alakazam:Ps|Machop:Fg|Machoke:Fg|Machamp:Fg|Bellsprout:Gr,Po|Weepinbell:Gr,Po|Victreebel:Gr,Po|Tentacool:Wa,Po|Tentacruel:Wa,Po|Geodude:Ro,Gd|Graveler:Ro,Gd|Golem:Ro,Gd|Ponyta:Fi|Rapidash:Fi|Slowpoke:Wa,Ps|Slowbro:Wa,Ps|Magnemite:El|Magneton:El|Farfetch'd:No,Fl|Doduo:No,Fl|Dodrio:No,Fl|Seel:Wa|Dewgong:Wa,Ic|Grimer:Po|Muk:Po|Shellder:Wa|Cloyster:Wa,Ic|Gastly:Gh,Po|Haunter:Gh,Po|Gengar:Gh,Po|Onix:Ro,Gd|Drowzee:Ps|Hypno:Ps|Krabby:Wa|Kingler:Wa|Voltorb:El|Electrode:El|Exeggcute:Gr,Ps|Exeggutor:Gr,Ps|Cubone:Gd|Marowak:Gd|Hitmonlee:Fg|Hitmonchan:Fg|Lickitung:No|Koffing:Po|Weezing:Po|Rhyhorn:Gd,Ro|Rhydon:Gd,Ro|Chansey:No|Tangela:Gr|Kangaskhan:No|Horsea:Wa|Seadra:Wa|Goldeen:Wa|Seaking:Wa|Staryu:Wa|Starmie:Wa,Ps|Mr. Mime:Ps|Scyther:Bu,Fl|Jynx:Ic,Ps|Electabuzz:El|Magmar:Fi|Pinsir:Bu|Tauros:No|Magikarp:Wa|Gyarados:Wa,Fl|Lapras:Wa,Ic|Ditto:No|Eevee:No|Vaporeon:Wa|Jolteon:El|Flareon:Fi|Porygon:No|Omanyte:Ro,Wa|Omastar:Ro,Wa|Kabuto:Ro,Wa|Kabutops:Ro,Wa|Aerodactyl:Ro,Fl|Snorlax:No|Articuno:Ic,Fl|Zapdos:El,Fl|Moltres:Fi,Fl|Dratini:Dr|Dragonair:Dr|Dragonite:Dr,Fl|Mewtwo:Ps|Mew:Ps`;
+const NOT_WILD = new Set([1,2,3,4,5,6,7,8,9,12,15,18,26,31,34,36,38,59,62,65,68,71,76,78,83,91,94,103,106,107,121,122,124,131,133,134,135,136,137,138,139,140,141,142,149,151]);
+// Evolves into another Gen I species
+const EVO=new Set([1,2,4,5,7,8,10,11,13,14,16,17,19,21,23,25,27,29,30,32,33,35,37,39,41,43,44,46,48,50,52,54,56,58,60,61,63,64,66,67,69,70,72,74,75,77,79,81,84,86,88,90,92,93,96,98,100,102,104,109,111,116,118,120,129,133,138,140,147,148]);
+// Legendary = the three legendary birds + Mewtwo (Mew is Mythical, so not counted)
+const LEG=new Set([144,145,146,150]);
+// Encounter categories per Pokémon (g grass, w water, c cave, m mountain, b building, s special; - none)
+const HABMAP={g:'grass',w:'water',c:'cave',m:'mountain',b:'building',s:'special'};
+const HAB=`s - - s - - s - - g
+g - g g - g g - g gc
+g g g gc gb - g gc g g
+- g g - mc - g - g c
+cm cm g g - mc c g g c
+c g g w w g g g - w
+w - g gc - cm cm - g g
+- w w mc mc - g - w w
+b b s g g cw cw b b w
+- b b - cm g g w w b
+b g - bc cm s s g b b
+gm m g g g w w w w w
+- s g s b b g g w w
+s gb s - - - s s - s
+- s gs cs bs ms w w - cs s`.split(/\s+/);
+const IMG=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+const mons=RAW.split('|').map((s,i)=>{const[n,t]=s.split(':'),id=i+1;
+  return{id,name:n,types:t.split(',').map(c=>A[c]),wild:!NOT_WILD.has(id),evo:EVO.has(id),leg:LEG.has(id),hab:HAB[i]==='-'?[]:[...HAB[i]].map(c=>HABMAP[c])};});
 
-const curTarget=()=>S.phase==='picking'&&S.task!=null&&S.slots.includes(S.task)?S.task:null;
-function send(d){if(isHost)handle(1,d);else if(hostConn&&hostConn.open)hostConn.send(d);}
+/* ---------- Grid ---------- */
+const grid=$('grid');
+mons.forEach(m=>{
+  const b=document.createElement('button');b.className='tile';b.type='button';b.setAttribute('aria-pressed','false');
+  b.setAttribute('aria-label',m.name+', '+m.types.join(' and ')+(m.wild?', found in the wild':''));
+  b.innerHTML=`<span class="num">#${String(m.id).padStart(3,'0')}</span><div class="art"><img src="${IMG(m.id)}" alt="${m.name}" loading="lazy" onerror="this.replaceWith(document.createTextNode('?'))"></div><span class="nm">${m.name}</span><span class="ty">${m.types.map(t=>`<span class="b" style="background:${TYPES[t]}">${t}</span>`).join('')}</span>${m.wild?'<span class="wd"><span aria-hidden="true">🌿</span> Wild</span>':''}`;
+  b.onclick=()=>{const on=b.classList.toggle('crossed');b.setAttribute('aria-pressed',on);applyFilters();};
+  m.el=b;grid.appendChild(b);
+});
+const emptyEl=document.createElement('div');emptyEl.className='empty';emptyEl.hidden=true;emptyEl.textContent='No Pokémon match your search and filters.';grid.appendChild(emptyEl);
+function clearCrosses(){mons.forEach(m=>{m.el.classList.remove('crossed');m.el.setAttribute('aria-pressed','false');});applyFilters();}
+$('reset').onclick=()=>{if(!document.querySelector('.tile.crossed')||confirm('Clear all crossed-out Pokémon? Your filters stay as they are.'))clearCrosses();};
+
+/* ---------- Search & filters ---------- */
+// Has a pre-evolution among the 151 (used for evolution-stage filter)
+const FROM=new Set([2,3,5,6,8,9,11,12,14,15,17,18,20,22,24,26,28,30,31,33,34,36,38,40,42,44,45,47,49,51,53,55,57,59,61,62,64,65,67,68,70,71,73,75,76,78,80,82,85,87,89,91,93,94,97,99,101,103,105,110,112,117,119,121,130,134,135,136,139,141,148,149]);
+mons.forEach(m=>{const f=FROM.has(m.id),e=EVO.has(m.id);m.stage=!f&&!e?'single':!f?'first':e?'middle':'final';m.letter=m.name[0].toUpperCase();});
+const LETTERS=[...new Set(mons.map(m=>m.letter))].sort();
+const F={q:'',types:new Set(),tmode:'any',cnt:new Set(),wild:new Set(),evo:new Set(),stage:new Set(),leg:new Set(),hab:new Set(),hmode:'any',multi:new Set(),letter:new Set(),lo:'',hi:''};
+const SECTIONS=[
+ {key:'types',title:'Element',opts:TYPE_LIST.map(t=>[t,t]),mode:'tmode'},
+ {key:'cnt',title:'Number of types',opts:[['1','Single type'],['2','Dual type']]},
+ {key:'wild',title:'Wild encounter',opts:[['y','Can be found in the wild'],['n','Cannot be found in the wild']]},
+ {key:'hab',title:'Habitat / encounter location',opts:[['grass','Grass'],['water','Water'],['cave','Caves'],['mountain','Mountains'],['building','Buildings'],['special','Special (gift, static, fossil…)']],mode:'hmode'},
+ {key:'evo',title:'Evolution',opts:[['y','Has an evolution'],['n','Does not evolve into another species']]},
+ {key:'stage',title:'Evolution stage',opts:[['first','First stage of a line'],['middle','Middle stage'],['final','Final stage'],['single','No evolutionary line']]},
+ {key:'leg',title:'Legendary status',opts:[['y','Legendary'],['n','Not legendary']]},
+ {key:'multi',title:'More habitat options',opts:[['y','Found in more than one habitat']]},
+ {key:'range',title:'Pokédex number range'},
+ {key:'letter',title:'Name starts with',opts:LETTERS.map(l=>[l,l])}];
+const lab={};SECTIONS.forEach(s=>(s.opts||[]).forEach(([v,l])=>lab[s.key+v]=s.key==='letter'?'Starts with '+l:l));
+const openSec=new Set(['types']);
+const secCount=s=>s.key==='range'?(F.lo||F.hi?1:0):F[s.key].size;
+function passes(m){
+  const ty=m.types,q=F.q;
+  if(q&&!(m.name.toLowerCase().includes(q)||String(m.id)===q.replace(/^#?0*/,'')||String(m.id).padStart(3,'0').includes(q)||ty.some(t=>t.toLowerCase().includes(q))))return false;
+  const any=(set,mode,have)=>!set.size||(mode==='any'?[...set].some(v=>have.includes(v)):[...set].every(v=>have.includes(v)));
+  const yn=(set,b)=>!set.size||set.has(b?'y':'n');
+  return any(F.types,F.tmode,ty)&&(!F.cnt.size||F.cnt.has(String(ty.length)))&&yn(F.wild,m.wild)&&yn(F.evo,m.evo)&&yn(F.leg,m.leg)
+    &&(!F.stage.size||F.stage.has(m.stage))&&any(F.hab,F.hmode,m.hab)&&(!F.multi.size||m.hab.length>1)
+    &&(!F.letter.size||F.letter.has(m.letter))&&m.id>=(+F.lo||1)&&m.id<=(+F.hi||151);
+}
+function applyFilters(){
+  let shown=0,crossed=0;
+  mons.forEach(m=>{const ok=passes(m);m.el.classList.toggle('gone',!ok);if(ok){shown++;if(m.el.classList.contains('crossed'))crossed++;}});
+  emptyEl.hidden=shown>0;
+  const n=SECTIONS.reduce((a,s)=>a+secCount(s),0)+(F.q?1:0);
+  $('count').textContent=shown+' Pokémon shown · '+crossed+' crossed out'+(n?' · '+n+' filter'+(n>1?'s':'')+' active':'');
+  $('xall').hidden=$('xrest').hidden=$('xevery').hidden=!n;$('fbadge').textContent=n;$('fbadge').hidden=!n;$('qc').style.display=F.q?'block':'none';
+}
+function buildFilters(){
+  $('fpanel').innerHTML=SECTIONS.map(s=>{
+    let body;
+    if(s.key==='range')body='<div class="rng"><label>From <input type="number" id="flo" min="1" max="151" inputmode="numeric" placeholder="1"></label><label>To <input type="number" id="fhi" min="1" max="151" inputmode="numeric" placeholder="151"></label></div>';
+    else body=(s.mode?`<div class="seg" role="group" aria-label="${s.title} matching">${[['any','Match any'],['all','Match all']].map(([x,l])=>`<button data-mode="${s.mode}" data-m="${x}">${l}</button>`).join('')}</div>`:'')+`<div class="chips">${s.opts.map(([v,l])=>`<button class="chip${TYPES[v]?' t':''}" data-k="${s.key}" data-v="${v}"${TYPES[v]?` style="--c:${TYPES[v]}"`:''}>${l}</button>`).join('')}</div>`;
+    return `<section class="fs${['types','hab','letter'].includes(s.key)?' wide':''}" aria-label="${s.title}"><div class="fh"><span>${s.title}</span><span class="badge" id="sb-${s.key}" hidden></span></div>${body}</section>`;
+  }).join('');
+}
+function refresh(){
+  document.querySelectorAll('#fpanel .chip').forEach(c=>{const on=F[c.dataset.k].has(c.dataset.v);c.classList.toggle('on',on);c.setAttribute('aria-pressed',on);});
+  document.querySelectorAll('#fpanel [data-mode]').forEach(b=>{const on=F[b.dataset.mode]===b.dataset.m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
+  SECTIONS.forEach(s=>{const b=$('sb-'+s.key),n=secCount(s);b.textContent=n;b.hidden=!n;});
+  ['lo','hi'].forEach(k=>{const i=$('f'+k);if(document.activeElement!==i)i.value=F[k];});
+  const act=SECTIONS.filter(s=>s.opts).flatMap(s=>[...F[s.key]].map(v=>`<button class="chip on" data-k="${s.key}" data-v="${v}" aria-label="Remove filter: ${lab[s.key+v]}">${lab[s.key+v]} ×</button>`));
+  if(F.lo||F.hi)act.push(`<button class="chip on" data-k="range" aria-label="Remove number range filter">#${F.lo||1}–#${F.hi||151} ×</button>`);
+  $('active').innerHTML=act.join('');
+  applyFilters();
+}
+function flip(c){const set=F[c.dataset.k],v=c.dataset.v;set.has(v)?set.delete(v):set.add(v);refresh();}
+$('fpanel').onclick=e=>{
+  const sg=e.target.closest('[data-mode]');if(sg){F[sg.dataset.mode]=sg.dataset.m;refresh();return;}
+  const c=e.target.closest('[data-k]');if(c)flip(c);
+};
+$('fpanel').oninput=e=>{if(e.target.id==='flo'||e.target.id==='fhi'){F[e.target.id.slice(1)]=e.target.value;refresh();}};
+$('active').onclick=e=>{const c=e.target.closest('[data-k]');if(!c)return;if(c.dataset.k==='range'){F.lo=F.hi='';refresh();}else flip(c);};
+$('fbtn').onclick=()=>{const o=$('fpanel').classList.toggle('open');$('fbtn').setAttribute('aria-expanded',o);};
+$('q').oninput=()=>{F.q=$('q').value.trim().toLowerCase();applyFilters();};
+$('qc').onclick=()=>{$('q').value='';F.q='';applyFilters();$('q').focus();};
+$('fclear').onclick=()=>{$('q').value='';F.q='';Object.keys(F).forEach(k=>{if(F[k] instanceof Set)F[k].clear();});F.tmode=F.hmode='any';F.lo=F.hi='';refresh();};
+buildFilters();refresh();
+const setCross=(list,on)=>{list.forEach(m=>{m.el.classList.toggle('crossed',on);m.el.setAttribute('aria-pressed',on);});applyFilters();};
+$('xall').onclick=()=>setCross(mons.filter(m=>!m.el.classList.contains('gone')),true);   // only what the current search/filters show
+$('xrest').onclick=()=>setCross(mons.filter(m=>!m.el.classList.contains('gone')),false);
+$('xevery').onclick=()=>setCross(mons,true);
+function closeFilters(){$('fpanel').classList.remove('open');$('fbtn').setAttribute('aria-expanded','false');}
+document.addEventListener('click',e=>{if(!e.target.closest('#fpanel,#fbtn,#active'))closeFilters();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFilters();});
+
+/* ---------- Theme ---------- */
+function syncTheme(){const d=document.documentElement.dataset.theme==='dark',b=$('theme');b.textContent=d?'☀️':'🌙';b.setAttribute('aria-label',d?'Switch to light theme':'Switch to dark theme');b.title=b.getAttribute('aria-label');}
+$('theme').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;try{localStorage.setItem('kantoTheme',n);}catch(e){}syncTheme();};
+syncTheme();
+
+/* ---------- Modal ---------- */
+let busy=false;
+const modalErr=m=>$('merr').textContent=m||'';
+function setBusy(m){busy=!!m;$('mbusy').textContent=m||'';['mcreate','mjoinb','mjoingo','mback'].forEach(i=>$(i).disabled=busy);}
+function openModal(){$('modal').classList.add('open');$('mmain').style.display='flex';$('mjoin').style.display='none';modalErr('');$('mname').focus();}
+function closeModal(){$('modal').classList.remove('open');}
+$('play').onclick=()=>{if(S)scrollTo({top:0,behavior:'smooth'});else openModal();};
+$('mx').onclick=closeModal;$('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
+addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+$('mjoinb').onclick=()=>{if(!getName())return;modalErr('');$('mmain').style.display='none';$('mjoin').style.display='block';$('mcode').focus();};
+$('mback').onclick=()=>{modalErr('');$('mjoin').style.display='none';$('mmain').style.display='flex';};
+try{$('mname').value=localStorage.getItem('kantoName')||'';}catch(e){}
 function getName(){
-  const n=$('uname').value.trim().replace(/\s+/g,' ');
-  if(n.length<2||n.length>20){notice='Enter a name between 2 and 20 characters.';render();return null;}
+  const n=$('mname').value.trim().replace(/\s+/g,' ');
+  if(n.length<2||n.length>20){modalErr('Please enter a name between 2 and 20 characters.');return null;}
   try{localStorage.setItem('kantoName',n);}catch(e){}
   return n;
 }
+
+/* ---------- Networking (PeerJS / WebRTC, host-authoritative) ---------- */
+const PREFIX='kanto151-guesswho-',MAX=8,CODE_CHARS='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+let peer=null,hostConn=null,isHost=false,me=0,code='',H=null,S=null,lastRound='',gsel=null;
+const newH=()=>({members:{},next:2,roundId:'',round:0,status:'lobby',order:[],idx:0,secrets:{},elim:[],winner:null,winMon:null,last:null,note:''});
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const netMsg=e=>'Network error ('+e.type+'). The free connection service may be unavailable – please try again shortly.';
+function notice(m){const n=$('notice');n.textContent=m||'';n.style.display=m?'block':'none';}
+function fail(m){leaveParty(true);notice(m);modalErr(m);}
+function noLib(){if(typeof Peer==='undefined'){modalErr('Multiplayer library failed to load. Check your connection and refresh.');return true;}}
+
 function createParty(){
-  const name=getName();if(!name)return;
-  leaveParty();notice='';
-  partyCode=Math.random().toString(36).slice(2,7).toUpperCase().padEnd(5,'X');
-  const pr=peer=new Peer(PREFIX+partyCode);
-  pr.on('open',()=>{isHost=true;me=1;H=freshHost();H.slots[1]=null;H.names[1]=name;H.eligible=[1];broadcast();});
-  pr.on('error',e=>{if(e.type==='unavailable-id')createParty();else fail('Connection error ('+e.type+')');});
+  const name=getName();if(!name||noLib())return;
+  leaveParty(true);notice('');setBusy('Creating party…');
+  code=Array.from({length:6},()=>CODE_CHARS[Math.random()*CODE_CHARS.length|0]).join('');
+  const pr=peer=new Peer(PREFIX+code);
+  pr.on('open',()=>{isHost=true;me=1;H=newH();H.members[1]={name,conn:null,waiting:false};setBusy('');closeModal();broadcast();});
+  pr.on('error',e=>{if(peer!==pr)return;if(e.type==='unavailable-id')createParty();else fail(netMsg(e));});
   pr.on('connection',c=>{
     c.on('data',d=>{
-      if(d.t==='hello'){
-        const f=[...Array(MAX)].map((_,i)=>i+1).find(x=>!(x in H.slots));
-        if(!f){c.send({t:'full'});return;}
-        let base=String(d.name||'').trim().replace(/\s+/g,' ').slice(0,20);if(base.length<2)base='Player '+f;
-        let nm=base,i=2;while(Object.values(H.names).includes(nm))nm=base+' ('+i++ +')';
-        H.slots[f]=c;H.names[f]=nm;c.slot=f;
-        if(H.phase==='lobby')H.eligible.push(f); // joining mid-round => waiting for next round
-        broadcast();
-      }else if(c.slot)handle(c.slot,d);
+      if(!d||typeof d!=='object')return;
+      if(d.type==='HELLO'){
+        if(c.pid)return;
+        if(Object.keys(H.members).length>=MAX){c.send({type:'FULL'});return;}
+        const pid=H.next++;let base=String(d.name||'').trim().replace(/\s+/g,' ').slice(0,20);if(base.length<2)base='Player '+pid;
+        let nm=base,i=2;while(Object.values(H.members).some(x=>x.name===nm))nm=base+' ('+i++ +')';
+        H.members[pid]={name:nm,conn:c,waiting:H.status!=='lobby'};c.pid=pid;broadcast();
+      }else if(c.pid)act(c.pid,d);
     });
-    c.on('close',()=>{
-      if(!c.slot)return;const s=c.slot;
-      delete H.slots[s];delete H.names[s];delete H.assign[s];delete H.tasks[s];
-      H.eligible=H.eligible.filter(x=>x!==s);
-      for(const k in H.tasks)if(H.tasks[k]===s)delete H.tasks[k];
-      broadcast();
-    });
+    c.on('close',()=>drop(c));c.on('error',()=>drop(c));
   });
 }
-function handle(s,d){
-  if(d.t==='set'){
-    // only during picking, only for the player you were assigned
-    if(H.phase==='picking'&&H.tasks[s]===d.target&&H.eligible.includes(d.target)&&d.mon>=1&&d.mon<=151){
-      H.assign[d.target]=d.mon;delete H.tasks[s];
+function nextEligible(from){ // next player (after index `from`) who has not guessed wrong; -1 if none
+  for(let k=1;k<=H.order.length;k++){const i=(from+k)%H.order.length;if(!H.elim.includes(H.order[i]))return i;}
+  return -1;
+}
+function endNoWinner(msg){H.status='finished';H.winner=null;H.winMon=null;H.note=msg;}
+function advance(){const i=nextEligible(H.idx);if(i<0)endNoWinner('Everyone guessed wrong, so nobody wins this round. All Pokémon are revealed.');else H.idx=i;}
+function drop(c){
+  const pid=c.pid;if(!pid||!H||!H.members[pid])return;
+  delete H.members[pid];delete H.secrets[pid];H.elim=H.elim.filter(x=>x!==pid);
+  const i=H.order.indexOf(pid);
+  if(i>=0){H.order.splice(i,1);if(i<H.idx)H.idx--;}
+  if(H.status==='active'){
+    if(H.order.length<2)endNoWinner('Not enough players are left, so the round has ended.');
+    else{
+      if(H.idx>=H.order.length)H.idx=0;
+      if(H.elim.includes(H.order[H.idx])){const n=nextEligible(H.idx);if(n<0)endNoWinner('Everyone left in the round guessed wrong, so nobody wins.');else H.idx=n;}
     }
-  }else if(s===1&&d.t==='newround'){
-    const ids=Object.keys(H.slots).map(Number);
-    H.eligible=ids;H.assign={};H.tasks={};H.phase='lobby';
-    if(ids.length>1){
-      let t;do{t=[...ids].sort(()=>Math.random()-.5);}while(t.some((x,i)=>x===ids[i]));
-      ids.forEach((id,i)=>H.tasks[id]=t[i]);
-      H.phase='picking';H.round++;
+  }
+  broadcast();
+}
+function act(pid,d){
+  if(!H.members[pid])return;
+  if(d.type==='START'){
+    const ids=Object.keys(H.members).map(Number);
+    if(pid!==1||H.status==='active'||ids.length<2)return;
+    ids.forEach(i=>H.members[i].waiting=false);
+    H.roundId='r'+Date.now().toString(36);H.round++;H.order=shuffle(ids);H.idx=0;H.elim=[];
+    const pool=shuffle(mons.map(m=>m.id));H.secrets={};ids.forEach((i,k)=>H.secrets[i]=pool[k]); // unique per player
+    H.status='active';H.winner=null;H.winMon=null;H.last=null;H.note='';
+  }else if(H.status==='active'&&d.roundId===H.roundId&&H.order[H.idx]===pid&&!H.elim.includes(pid)){
+    if(d.type==='END_TURN'){H.last=null;advance();}
+    else if(d.type==='GUESS'&&Number.isInteger(d.mon)&&d.mon>=1&&d.mon<=151){
+      if(d.mon===H.secrets[pid]){H.status='finished';H.winner=pid;H.winMon=d.mon;H.last={pid,mon:d.mon,ok:true};}
+      else{H.elim.push(pid);H.last={pid,mon:d.mon,ok:false};advance();} // guessed wrong: out for the rest of the round
     }
-  }else if(s===1&&d.t==='start'&&H.phase==='ready')H.phase='playing';
+  }
   broadcast();
 }
 function broadcast(){
-  const slots=Object.keys(H.slots).map(Number).sort((a,b)=>a-b);
-  if(H.phase==='picking'&&!Object.keys(H.tasks).length)H.phase='ready';
-  if(H.phase!=='lobby'&&H.eligible.length<2){H.phase='lobby';H.assign={};H.tasks={};H.eligible=slots.slice();}
-  const waiting=H.phase==='lobby'?[]:slots.filter(x=>!H.eligible.includes(x));
-  const picked=Object.keys(H.assign).map(Number);
-  for(const s of slots){
-    // pokémon are only revealed once the game starts, only to players in the round, and never your own
-    const m={};if(H.phase==='playing'&&H.eligible.includes(s))for(const k in H.assign)if(+k!==s)m[k]=H.assign[k];
-    const msg={t:'state',you:s,slots,names:H.names,waiting,mons:m,picked,phase:H.phase,task:H.tasks[s]??null,left:Object.keys(H.tasks).length,round:H.round,host:1};
-    if(s===1)applyState(msg);else H.slots[s].send(msg);
+  const ids=Object.keys(H.members).map(Number);
+  const members=ids.map(id=>({id,name:H.members[id].name,waiting:H.members[id].waiting}));
+  for(const pid of ids){
+    // everyone sees the OTHER players' Pokémon (so they can answer questions) – never their own until the round ends
+    const sec={};if(H.status!=='lobby'&&!H.members[pid].waiting)for(const k in H.secrets)if(H.status==='finished'||+k!==pid)sec[k]=H.secrets[k];
+    const msg={type:'STATE',you:pid,host:1,members,roundId:H.roundId,round:H.round,status:H.status,order:H.order,idx:H.idx,elim:H.elim,secrets:sec,winner:H.winner,winMon:H.winMon,last:H.last,note:H.note};
+    if(pid===1)applyState(msg);else{const c=H.members[pid].conn;if(c&&c.open)c.send(msg);}
   }
 }
 function joinParty(){
-  const name=getName();if(!name)return;
-  const c=$('code').value.trim().toUpperCase();if(!c){notice='Enter a party code.';render();return;}
-  leaveParty();notice='';partyCode=c;
+  const name=getName();if(!name||noLib())return;
+  const c=$('mcode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(c.length!==6){modalErr('Enter the 6-character party code.');return;}
+  leaveParty(true);notice('');setBusy('Connecting to party…');code=c;
   const pr=peer=new Peer();
+  const timer=setTimeout(()=>{if(peer===pr&&!me)fail('Could not reach that party. Check the code and try again.');},12000);
   pr.on('open',()=>{
     const hc=hostConn=pr.connect(PREFIX+c,{reliable:true});
-    hc.on('open',()=>hc.send({t:'hello',name}));
-    hc.on('data',d=>{if(d.t==='state'){me=d.you;applyState(d);}else if(d.t==='full')fail('Party is full.');});
-    hc.on('close',()=>fail('Party ended (host left).'));
+    hc.on('open',()=>hc.send({type:'HELLO',name}));
+    hc.on('data',d=>{
+      if(!d)return;
+      if(d.type==='STATE'){clearTimeout(timer);me=d.you;setBusy('');closeModal();applyState(d);}
+      else if(d.type==='FULL'){clearTimeout(timer);fail('That party is full.');}
+    });
+    hc.on('close',()=>{clearTimeout(timer);if(peer===pr)fail(me?'Connection lost – the host left, so the party has ended. Ask them to create a new party.':'Could not connect to that party.');});
   });
-  pr.on('error',e=>fail(e.type==='peer-unavailable'?'No party with that code.':'Connection error ('+e.type+')'));
+  pr.on('error',e=>{clearTimeout(timer);if(peer===pr)fail(e.type==='peer-unavailable'?'No party found with that code.':netMsg(e));});
 }
-function leaveParty(){
+function leaveParty(quiet){
   const p=peer;peer=null;hostConn=null;
   if(p)try{p.destroy();}catch(e){}
-  isHost=false;me=0;partyCode='';S=emptyS();sel=null;H=freshHost();render();
+  isHost=false;me=0;code='';H=null;S=null;lastRound='';resetGuess();setBusy('');renderGame();
+  if(!quiet)notice('');
 }
-function fail(msg){leaveParty();notice=msg;render();}
-function applyState(m){S=m;if(curTarget()==null)sel=null;render();}
-function confirmPick(){const t=curTarget();if(t==null||!sel)return;const id=sel.id;sel=null;send({t:'set',target:t,mon:id});}
+function send(d){if(isHost)act(1,d);else if(hostConn&&hostConn.open)hostConn.send(d);}
+function applyState(d){
+  S=d;
+  if(d.roundId!==lastRound){lastRound=d.roundId;clearCrosses();resetGuess();}
+  renderGame();
+}
 
-function render(){
-  const inParty=me>0;
-  $('uname').style.display=$('create').style.display=$('code').style.display=$('join').style.display=inParty?'none':'';
-  $('leave').style.display=inParty?'':'none';
-  $('pcode').innerHTML=inParty?'Party code: <b>'+esc(partyCode)+'</b> <button id="cc">Copy</button>':esc(notice);
-  if(inParty)$('cc').onclick=()=>{try{navigator.clipboard.writeText(partyCode);$('cc').textContent='Copied!';}catch(e){}};
-  const box=$('players'),ban=$('banner'),t=curTarget(),ph=S.phase,nm=s=>esc(S.names[s]||'?');
-  document.body.classList.toggle('picking',t!=null);
-  box.style.display=inParty?'flex':'none';box.innerHTML='';
-  if(!inParty){ban.style.display='none';return;}
-  const amHost=me===S.host,amWaiting=S.waiting.includes(me);
-  const order=[...S.waiting,...S.slots.filter(x=>!S.waiting.includes(x))];
-  order.forEach(s=>{
-    const b=document.createElement('div'),w=S.waiting.includes(s);
-    b.className='pl'+(s===me?' me':'')+(w?' wait':'');
-    const id=S.mons[s],mon=id&&mons[id-1];
-    let pic,sub;
-    if(w){pic='<div class="q">⏳</div>';sub='Waiting for next round';}
-    else if(ph==='playing'){
-      pic=s===me?'<div class="q">?</div>':mon?'<img src="'+IMG(id)+'" alt="">':'<div class="q">–</div>';
-      sub=s===me?'Hidden from you':mon?esc(mon.name):'No Pokémon';
-    }else{
-      const ok=S.picked.includes(s);
-      pic='<div class="q">'+(ph==='lobby'?'•':ok?'✓':'…')+'</div>';
-      sub=ph==='lobby'?'':ok?'Pokémon chosen':'Waiting for a pick';
-    }
-    b.innerHTML=pic+'<span><b>'+nm(s)+(s===me?' (you)':'')+(s===S.host?' ★ Host':'')+'</b><small>'+sub+'</small></span>';
-    box.appendChild(b);
-  });
-  if(amHost){
-    const nr=document.createElement('button');nr.textContent=S.round?'New round':'Start round';nr.disabled=S.slots.length<2;
-    nr.onclick=()=>send({t:'newround'});box.appendChild(nr);
-    const st=document.createElement('button');st.textContent=ph==='playing'?'Game on!':'Start game';
-    st.disabled=ph!=='ready';if(ph==='ready')st.className='go';st.onclick=()=>send({t:'start'});box.appendChild(st);
-  }
-  const R=S.round?'<b>Round '+S.round+'</b> · ':'';
-  let h;
-  if(ph==='lobby')h=S.slots.length<2?'Waiting for at least 2 players…':amHost?'Press <b>Start round</b> when everyone is in.':'Waiting for the host to start a round.';
-  else if(amWaiting)h=R+'You joined mid-round, so you will be included from the next round.';
-  else if(ph==='picking'){
-    if(t!=null)h=sel?R+'Set <b>'+nm(t)+'</b> to <b>'+esc(sel.name)+'</b>? <button id="ok" class="go">Confirm</button> <span>or click another tile to change</span>':R+'Choose a Pokémon for <b>'+nm(t)+'</b> – click a tile below.';
-    else h=R+'Your pick is in. Waiting for '+S.left+' more pick'+(S.left===1?'':'s')+'…';
-  }else if(ph==='ready')h=R+(amHost?'Everyone has picked! Press the green <b>Start game</b> button.':'Everyone has picked! Waiting for the host to start.');
-  else h=R+'Game on! Work out your own Pokémon. '+(amHost?'Press <b>New round</b> to play again.':'The host starts the next round.');
-  ban.style.display='flex';ban.innerHTML=h;
-  if($('ok'))$('ok').onclick=confirmPick;
+/* ---------- Game UI ---------- */
+/* Guess combobox: all 151 on focus, live filtering, thumbnails, keyboard support */
+let gact=-1,gmatches=[];
+function gRender(){
+  const raw=$('gin').value.trim(),v=raw.toLowerCase().replace(/^#/,'');
+  gmatches=mons.filter(m=>!v||m.name.toLowerCase().includes(v)||String(m.id)===v);
+  if(gact>=gmatches.length)gact=gmatches.length-1;
+  $('glist').innerHTML=gmatches.length?gmatches.map((m,i)=>`<li role="option" id="go${m.id}" data-id="${m.id}" aria-selected="${i===gact}" class="${i===gact?'act':''}"><img src="${IMG(m.id)}" alt="" width="32" height="32" loading="lazy"><span>${esc(m.name)}</span><small style="color:var(--muted);margin-left:auto">#${String(m.id).padStart(3,'0')}</small></li>`).join(''):`<li class="no" role="option" aria-disabled="true">No Pokémon match “${esc(raw)}”</li>`;
+  $('glist').hidden=false;$('gin').setAttribute('aria-expanded','true');
+  if(gact>=0)$('gin').setAttribute('aria-activedescendant','go'+gmatches[gact].id);else $('gin').removeAttribute('aria-activedescendant');
+  const a=$('glist').querySelector('.act');if(a)a.scrollIntoView({block:'nearest'});
 }
-$('create').onclick=createParty;$('join').onclick=joinParty;$('leave').onclick=leaveParty;
-$('code').onkeydown=e=>{if(e.key==='Enter')joinParty();};
+function gClose(){$('glist').hidden=true;$('gin').setAttribute('aria-expanded','false');}
+function gPick(m){gsel=m;$('gin').value=m.name;gClose();$('gprev').innerHTML=`<img src="${IMG(m.id)}" alt=""> ${esc(m.name)}`;$('gbtn').disabled=false;$('gconf').style.display='none';}
+function resetGuess(){gsel=null;gact=-1;$('gin').value='';$('gprev').innerHTML='';$('gbtn').disabled=true;$('gconf').style.display='none';gClose();}
+$('gin').onfocus=gRender;$('gin').onblur=gClose;
+$('gin').oninput=()=>{
+  gsel=null;$('gprev').innerHTML='';$('gbtn').disabled=true;$('gconf').style.display='none';gact=0;gRender();
+  const ex=mons.find(m=>m.name.toLowerCase()===$('gin').value.trim().toLowerCase());if(ex){gPick(ex);} // typing never submits; it only selects
+};
+$('gin').onkeydown=e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if($('glist').hidden)gRender();else{gact=(gact+(e.key==='ArrowDown'?1:-1)+gmatches.length)%Math.max(gmatches.length,1);gRender();}}
+  else if(e.key==='Enter'){e.preventDefault();if(!$('glist').hidden&&gmatches[gact])gPick(gmatches[gact]);}
+  else if(e.key==='Escape'){gClose();}
+};
+$('glist').onmousedown=e=>e.preventDefault();
+$('glist').onclick=e=>{const li=e.target.closest('li[data-id]');if(li)gPick(mons[li.dataset.id-1]);};
+$('gbtn').onclick=()=>{if(gsel){$('gct').textContent='Guess '+gsel.name+'? A wrong guess knocks you out for this round.';$('gconf').style.display='flex';}};
+$('gno').onclick=()=>$('gconf').style.display='none';
+$('gyes').onclick=()=>{if(gsel&&S){send({type:'GUESS',roundId:S.roundId,mon:gsel.id});resetGuess();}};
+$('gend').onclick=()=>{if(S)send({type:'END_TURN',roundId:S.roundId});};
+$('gstart').onclick=()=>send({type:'START'});
+$('gleave').onclick=()=>leaveParty();
+$('gcopy').onclick=()=>{try{navigator.clipboard.writeText(code);$('gcopy').textContent='Copied!';setTimeout(()=>$('gcopy').textContent='Copy Code',1500);}catch(e){}};
+
+function renderGame(){
+  const g=$('game');
+  if(!S){g.style.display='none';$('play').textContent='Play Online';return;}
+  g.style.display='block';$('play').textContent='Party';
+  $('gcode').textContent=code;$('gstat').textContent='● Connected';
+  const mem=S.members,nm=id=>esc((mem.find(m=>m.id===id)||{name:'Player'}).name),el=S.elim||[];
+  const amHost=me===S.host,meM=mem.find(m=>m.id===me)||{},cur=S.status==='active'?S.order[S.idx]:null,meOut=el.includes(me);
+  const chip=(m,w)=>{
+    const id=S.secrets[m.id],mon=id&&mons[id-1],out=el.includes(m.id)&&S.status!=='lobby';let pic='<div class="q">?</div>',sub='';
+    if(w)sub='Waiting for next round';
+    else if(S.status!=='lobby'){if(mon){pic=`<img src="${IMG(id)}" alt="">`;sub=esc(mon.name);}else sub='Mystery Pokémon';}
+    const turn=m.id===cur,n=S.order.indexOf(m.id)+1;
+    return `<div class="pl${turn?' turn':''}${w?' wait':''}${out?' out':''}${m.id===me?' me':''}">${pic}<div><b>${n&&!w?n+'. ':''}${esc(m.name)}${m.id===me?' (you)':''}${m.id===S.host?' ★ Host':''}</b><small>${sub}</small>${turn?`<em>${m.id===me?'YOUR TURN':'CURRENT TURN'}</em>`:''}${out?'<em>GUESSED WRONG</em>':''}</div></div>`;
+  };
+  const wait=mem.filter(m=>m.waiting),act_=mem.filter(m=>!m.waiting);
+  if(S.status==='active')act_.sort((a,b)=>S.order.indexOf(a.id)-S.order.indexOf(b.id));
+  $('gplayers').innerHTML=(wait.length?'<div class="gh">Waiting for next round</div>'+wait.map(m=>chip(m,true)).join('')+'<div class="gh">Current round</div>':'')+act_.map(m=>chip(m,false)).join('');
+  let h='';
+  if(S.status==='lobby')h=mem.length<2?'Waiting for more players… share the party code.':amHost?'Everyone here? Press <b>Start Game</b>.':'Waiting for the host to start the game.';
+  else if(S.status==='active'){
+    h=`<b>Round ${S.round}</b> · `+(cur===me?'<b>Your Turn — Ask the room a question.</b>':`<b>${nm(cur)}'s Turn</b>`);
+    h+=`<br><small>Turn order: ${S.order.map((id,i)=>{const t=`${i+1}. ${nm(id)}`;return el.includes(id)?`<span class="dim">${t}</span>`:id===cur?`<b>${t}</b>`:t;}).join(' → ')}</small>`;
+    if(meM.waiting)h+='<br>You joined mid-round, so you will take part from the next round.';
+    else if(meOut)h+='<br><b>You guessed wrong</b> and are out for this round. Keep answering questions for the others!';
+    else{h+='<br><small>Your mystery Pokémon has been assigned. Ask questions to work out what it is!</small>';if(cur!==me)h+='<br><small>Answer honestly about their Pokémon when asked.</small>';}
+    if(S.last&&!S.last.ok)h+=`<br>${nm(S.last.pid)} guessed <b>${esc(mons[S.last.mon-1].name)}</b> — <b>Guessed Wrong</b>.`;
+  }else h=S.note?esc(S.note):'';
+  $('gmsg').innerHTML=h;
+  $('gwin').innerHTML=S.status==='finished'&&S.winner?`<div class="row"><img src="${IMG(S.winMon)}" alt="${esc(mons[S.winMon-1].name)}"><div><b>${nm(S.winner)} guessed correctly!</b><br>It was ${esc(mons[S.winMon-1].name)}.<br>${amHost?'Press <b>Start Next Round</b> when ready.':'Waiting for the host to start the next round.'}</div></div>`:(S.status==='finished'?(amHost?'Press <b>Start Next Round</b> to play again.':'Waiting for the host to start the next round.'):'');
+  const st=$('gstart');st.style.display=amHost&&S.status!=='active'?'inline-block':'none';
+  st.textContent=S.status==='finished'?'Start Next Round':'Start Game';st.disabled=mem.length<2;
+  const mine=S.status==='active'&&cur===me&&!meM.waiting&&!meOut;
+  $('gturn').style.display=mine?'block':'none';if(!mine)resetGuess();
+}
+$('mcreate').onclick=createParty;$('mjoingo').onclick=joinParty;
+$('mcode').onkeydown=e=>{if(e.key==='Enter')joinParty();};
 addEventListener('beforeunload',()=>{if(peer)peer.destroy();});
+renderGame();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </body>
 </html>
