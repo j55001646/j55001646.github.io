@@ -254,6 +254,7 @@ function applyFilters(){
   emptyEl.hidden=shown>0;
   const n=SECTIONS.reduce((a,s)=>a+secCount(s),0)+(F.q?1:0);
   $('count').textContent=shown+' Pokémon shown · '+crossed+' crossed out'+(n?' · '+n+' filter'+(n>1?'s':'')+' active':'');
+  $('xall').hidden=$('xrest').hidden=!n;$('fbadge').textContent=n;$('fbadge').hidden=!n;$('qc').style.display=F.q?'block':'none';
 }
 function buildFilters(){
   $('fpanel').innerHTML=SECTIONS.map(s=>{
